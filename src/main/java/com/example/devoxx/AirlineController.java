@@ -10,4 +10,9 @@ public class AirlineController {
     public String airlineDetails() {
         return "Fly with us and discover a world of new horizons.";
     }
+
+    @GetMapping("/greeting")
+    public String greeting(@AuthenticationPrincipal(expression = "username") String username) {
+        return "Welcome, " + username + "!";
+    }
 }
