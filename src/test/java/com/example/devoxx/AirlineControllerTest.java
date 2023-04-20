@@ -27,4 +27,11 @@ class AirlineControllerTest {
                 .webAppContextSetup(context)
                 .build();
     }
+
+    @Test
+    public void detailsReturnsAirlineDetails() throws Exception {
+        this.mockMvc.perform(get("/details"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Fly with us and discover a world of new horizons."));
+    }
 }
