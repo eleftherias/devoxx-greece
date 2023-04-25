@@ -1,5 +1,6 @@
 package com.example.devoxx;
 
+import com.example.devoxx.PassengerService.PassengerDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,6 +50,22 @@ class AirlineControllerTest {
     @Test
     public void greetingWhenUnauthenticatedUserThenReturns401() throws Exception {
         this.mockMvc.perform(get("/greeting"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    public void getSeatReturnsPassengerSeatNumber() throws Exception {
+        Passenger passenger = new Passenger();
+        passenger.setSeat("2A");
+        this.mockMvc.perform(get("/seat").with(user(new PassengerDetails(passenger))))
+                .andExpect(status().isOk())
+                .andExpect(content().string("2A"));
+    }
+
+    @Test
+    public void getSeatWhenUnauthenticatedUserThenReturns401() throws Exception {
+        this.mockMvc.perform(get("/seat"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
     }

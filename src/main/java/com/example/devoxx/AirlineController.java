@@ -15,4 +15,9 @@ public class AirlineController {
     public String greeting(@AuthenticationPrincipal(expression = "username") String username) {
         return "Welcome, " + username + "!";
     }
+
+    @GetMapping("/seat")
+    public String getSeat(@AuthenticationPrincipal Passenger user) {
+        return user.getSeat();
+    }
 }
