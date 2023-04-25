@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -66,6 +67,49 @@ class AirlineControllerTest {
     @Test
     public void getSeatWhenUnauthenticatedUserThenReturns401() throws Exception {
         this.mockMvc.perform(get("/seat"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    public void postSeatWhenPassengerIsPremiumThenUpdatesSeat() throws Exception {
+        Passenger premiumPassenger = new Passenger();
+        premiumPassenger.setPremium(true);
+        this.mockMvc.perform(post("/seat")
+                        .content("1A")
+                        .with(user(new PassengerDetails(premiumPassenger)))
+                        .with(csrf())
+                )
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void postSeatWithoutCsrfThenReturns403() throws Exception {
+        Passenger premiumPassenger = new Passenger();
+        premiumPassenger.setPremium(true);
+        this.mockMvc.perform(post("/seat")
+                        .content("1A")
+                        .with(user(new PassengerDetails(premiumPassenger)))
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void postSeatWhenPassengerIsNotPremiumThenReturns403() throws Exception {
+        Passenger passenger = new Passenger();
+        this.mockMvc.perform(post("/seat")
+                        .content("1A")
+                        .with(user(new PassengerDetails(passenger)))
+                        .with(csrf())
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void postSeatWhenUnauthenticatedUserThenReturns401() throws Exception {
+        this.mockMvc.perform(post("/seat")
+                        .content("1A")
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
     }
