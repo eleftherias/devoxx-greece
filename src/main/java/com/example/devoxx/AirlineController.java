@@ -28,4 +28,9 @@ public class AirlineController {
         // To constrain the project scope, data operations are omitted
         System.out.println("User: " + user + "updated to seat " + newSeat);
     }
+
+    @GetMapping("/api/data")
+    public String getAirlineData() {
+        return "3% of passenger are checked-in";
+    }
 }

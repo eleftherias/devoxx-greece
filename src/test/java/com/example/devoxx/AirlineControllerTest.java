@@ -6,11 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -112,5 +114,33 @@ class AirlineControllerTest {
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    public void apiDataWhenUserAuthorityIsApiReadThenReturnsAirlineData() throws Exception {
+        Jwt apiReadJwt = Jwt.withTokenValue("token")
+                        .header("alg", "none")
+                        .claim("sub", "api-user")
+                        .claim("scope", "api:read")
+                        .build();
+        this.mockMvc.perform(get("/api/data").with(jwt().jwt(apiReadJwt)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("3% of passenger are checked-in"));
+    }
+
+    @Test
+    public void apiDataWhenUserAuthorityIsNotApiReadThenReturns403() throws Exception {
+        Jwt noApiReadJwt = Jwt.withTokenValue("token")
+                .header("alg", "none")
+                .claim("sub", "api-user")
+                .build();
+        this.mockMvc.perform(get("/api/data").with(jwt().jwt(noApiReadJwt)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void apiDataWhenUnauthenticatedUSerThenReturns401() throws Exception {
+        this.mockMvc.perform(get("/api/data"))
+                .andExpect(status().isUnauthorized());
     }
 }
